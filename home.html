@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antrose Cart</title>
+
+  <!-- Add Stripe JavaScript Library -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      overflow: hidden;
+      background-color: #333;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: #f2f2f2;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    .logo {
+      height: 50px;
+      margin-right: 5px;
+    }
+
+    img {
+      height: 10px;
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .cart {
+      margin-left: auto;
+      /* Push the Cart to the right */
+    }
+
+    h1 {
+      margin-top: 70px;
+      /* Adjusted margin for content below fixed navbar */
+      text-align: center;
+    }
+
+    .category {
+      margin: 20px 0;
+    }
+
+    .category h2 {
+      border-bottom: 2px solid #333;
+      padding-bottom: 5px;
+    }
+
+    .product {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .product img {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 10px;
+    }
+
+    .product-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .edit-product,
+    .delete-product,
+    .add-to-cart {
+      cursor: pointer;
+      padding: 5px 10px;
+      margin-top: 5px;
+      border: none;
+    }
+
+    .edit-product {
+      background-color: #3498db;
+      color: #fff;
+    }
+
+    .delete-product {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+
+    .add-to-cart {
+      background-color: #4caf50;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Cart Page Styles */
+
+    .cart-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      margin-bottom: 10px;
+    }
+
+    .cart-item img {
+      max-width: 50px;
+      height: auto;
+      margin-right: 10px;
+    }
+
+    .checkout-button {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .cart-notification {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      border-radius: 50%;
+      padding: 5px;
+      font-size: 12px;
+    }
+
+    #checkoutContainer {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    #checkoutForm {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+
+    #checkoutItems {
+      margin-top: 20px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+      margin-bottom: 10px;
+    }
+
+    .cart-item img {
+      max-width: 50px;
+      height: auto;
+      margin-right: 10px;
+    }
+
+    .payment-button {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .payment-button:hover {
+      background-color: #45a049;
+    }
+
+    /* Quantity input styling */
+    .quantity-input {
+      width: 50px;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Total price display */
+    .cart-item-total {
+      font-weight: bold;
+    }
+
+    #checkoutContainer {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    #checkoutForm {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Overall total price display */
+    #totalPrice {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    #checkoutForm {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    #card-element {
+      margin-bottom: 15px;
+    }
+
+    #card-errors {
+      color: #e74c3c;
+      margin-bottom: 15px;
+    }
+
+    #totalPrice {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-top: 15px;
+      color: #333;
+    }
+
+    .payment-button {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+
+    .payment-button:hover {
+      background-color: #45a049;
+    }
+
+    #payment-feedback {
+      margin-top: 15px;
+      color: #333;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="navbar">
+    <a href="home.html"><img src="img/icons8-cart-48.png" alt="Logo" class="logo">Antrose Cart</a>
+    <a href="home.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="terms.html">Terms and Conditions</a>
+    <a href="refund.html">Refund and Return Policy</a>
+    <a href="#cart" class="cart" onclick="showCart()">Cart<span id="cartNotification"
+        class="cart-notification">0</span></a>
+  </div>
+
+  <div class="container">
+    <h1>Welcome to Antrose Cart!</h1>
+
+    <div class="category" onclick="toggleProducts(this)">
+      <h2>Phones</h2>
+      <div class="products-container">
+        <div class="product">
+          <img src="" alt="Product 1">
+          <div class="product-details">
+            <h3 contenteditable="true">Apple</h3>
+            <p contenteditable="true">Price: $999</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product">
+          <img src="" alt="Product 2">
+          <div class="product-details">
+            <h3 contenteditable="true">Samsung</h3>
+            <p contenteditable="true">Price: $799</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category" onclick="toggleProducts(this)">
+      <h2>Laptops</h2>
+      <div class="products-container">
+        <div class="product">
+          <img src="laptop1.png" alt="Dell XPS">
+          <div class="product-details">
+            <h3 contenteditable="true">Dell XPS</h3>
+            <p contenteditable="true">Price: $1499</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product">
+          <img src="laptop2.png" alt="MacBook Pro">
+          <div class="product-details">
+            <h3 contenteditable="true">MacBook Pro</h3>
+            <p contenteditable="true">Price: $1799</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category" onclick="toggleProducts(this)">
+      <h2>Cameras</h2>
+      <div class="products-container">
+        <div class="product">
+          <img src="camera1.png" alt="Canon EOS">
+          <div class="product-details">
+            <h3 contenteditable="true">Canon EOS</h3>
+            <p contenteditable="true">Price: $899</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product">
+          <img src="camera2.png" alt="Sony Alpha">
+          <div class="product-details">
+            <h3 contenteditable="true">Sony Alpha</h3>
+            <p contenteditable="true">Price: $1099</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category" onclick="toggleProducts(this)">
+      <h2>Smartwatches</h2>
+      <div class="products-container">
+        <div class="product">
+          <img src="watch1.png" alt="Apple Watch">
+          <div class="product-details">
+            <h3 contenteditable="true">Apple Watch</h3>
+            <p contenteditable="true">Price: $349</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product">
+          <img src="watch2.png" alt="Samsung Galaxy Watch">
+          <div class="product-details">
+            <h3 contenteditable="true">Samsung Galaxy Watch</h3>
+            <p contenteditable="true">Price: $299</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category" onclick="toggleProducts(this)">
+      <h2>Headphones</h2>
+      <div class="products-container">
+        <div class="product">
+          <img src="headphone1.png" alt="Sony WH-1000XM4">
+          <div class="product-details">
+            <h3 contenteditable="true">Sony WH-1000XM4</h3>
+            <p contenteditable="true">Price: $349</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+        <div class="product">
+          <img src="headphone2.png" alt="Bose QuietComfort 35 II">
+          <div class="product-details">
+            <h3 contenteditable="true">Bose QuietComfort 35 II</h3>
+            <p contenteditable="true">Price: $299</p>
+          </div>
+          <div class="product-actions">
+            <button class="edit-product" onclick="editProduct(this)">Edit</button>
+            <button class="delete-product" onclick="deleteProduct(this)">Delete</button>
+            <button class="add-to-cart" onclick="addToCart(this)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Cart Page -->
+  <div id="cartContainer" class="cart-container" style="display: none;">
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <button class="checkout-button" onclick="goToCheckout()">Checkout</button>
+  </div>
+
+  <!-- Checkout Page -->
+  <div id="checkoutContainer" class="cart-container" style="display: none;">
+    <h2>Checkout</h2>
+    <form id="checkoutForm">
+      <label for="customerName">Name:</label>
+      <input type="text" id="customerName" name="customerName" required>
+
+      <label for="customerPhone">Phone Number:</label>
+      <input type="tel" id="customerPhone" name="customerPhone" required>
+
+      <label for="customerAddress">Address:</label>
+      <textarea id="customerAddress" name="customerAddress" rows="4" required></textarea>
+
+      <label for="customerEmail">Email:</label>
+      <input type="email" id="customerEmail" name="customerEmail" required>
+      <br>
+      <!-- Add a container for Stripe Elements -->
+      <div id="card-element">
+        <!-- A Stripe Element will be inserted here. -->
+      </div>
+      <div id="card-errors" role="alert"></div>
+
+      <!-- Payment feedback message -->
+      <div id="payment-feedback" role="alert"></div>
+      <h3>Order Summary</h3>
+      <div id="checkoutItems"></div>
+      <p id="totalPrice">Total Price: $0.00</p>
+
+
+      <button type="button" class="payment-button" onclick="processPayment()">Proceed to Payment</button>
+
+    </form>
+  </div>
+
+  </div>
+  </div>
+  </div>
+
+
+  <script>
+    var cartCount = 0;
+
+    function toggleProducts(category) {
+      var productsContainer = category.querySelector('.products-container');
+      var products = productsContainer.children;
+
+      for (var i = 0; i < products.length; i++) {
+        var display = window.getComputedStyle(products[i]).display;
+        products[i].style.display = display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    function editProduct(button) {
+      var product = button.closest('.product');
+      var productName = product.querySelector('h3');
+      var newProductName = prompt('Enter the new product name:', productName.textContent);
+      if (newProductName !== null) {
+        productName.textContent = newProductName;
+      }
+
+      var productPrice = product.querySelector('p');
+      var newProductPrice = prompt('Enter the new product price:', productPrice.textContent);
+      if (newProductPrice !== null) {
+        productPrice.textContent = 'Price: $' + newProductPrice;
+      }
+    }
+
+    function deleteProduct(button) {
+      var product = button.closest('.product');
+      product.parentNode.removeChild(product);
+    }
+
+    // Function to add products to the cart with quantity
+    function addToCart(button) {
+      const product = button.closest('.product');
+      const productName = product.querySelector('h3').textContent;
+      const productPrice = parseFloat(product.querySelector('p').textContent.replace(/\D/g, ''));
+      const productImage = product.querySelector('img').src;
+
+      let quantity = parseInt(prompt(`Enter the quantity for ${productName}:`, 1), 10);
+
+      // Validate quantity input
+      if (isNaN(quantity) || quantity <= 0) {
+        alert('Quantity must be a positive number greater than zero.');
+        return;
+      }
+
+      // Update cart count and notification
+      cartCount += quantity;
+      document.getElementById('cartNotification').textContent = cartCount;
+
+      // Create cart item
+      const cartItem = document.createElement('div');
+      cartItem.classList.add('cart-item');
+      cartItem.innerHTML = `
+    <img src="${productImage}" alt="${productName}">
+    <div>
+      <p>${productName}</p>
+      <p>Price: $${productPrice.toFixed(2)}</p>
+      <p>Quantity: ${quantity}</p>
+      <p>Total: $${(productPrice * quantity).toFixed(2)}</p>
+    </div>
+  `;
+
+      document.getElementById('cartItems').appendChild(cartItem);
+    }
+
+    function showCart() {
+      document.getElementById('cartContainer').style.display = 'block';
+    }
+
+    function goToCheckout() {
+      document.getElementById('cartContainer').style.display = 'none';
+      document.getElementById('checkoutContainer').style.display = 'block';
+
+      // Transfer cart items to the checkout page
+      const cartItems = document.getElementById('cartItems').innerHTML;
+      document.getElementById('checkoutItems').innerHTML = cartItems;
+
+      // Calculate and display total price
+      calculateTotalPrice();
+    }
+
+    function calculateTotalPrice() {
+      let totalPrice = 0;
+
+      // Iterate through cart items and calculate total price
+      document.querySelectorAll('.cart-item').forEach(function (cartItem) {
+
+        const totalElement = cartItem.querySelector('.cart-item-total');
+        const priceElement = cartItem.querySelector('p'); // Change to the correct selector for price
+        const quantityElement = cartItem.querySelector('p'); // Change to the correct selector for quantity
+
+        const price = parseFloat(priceElement.textContent.replace(/\D/g, ''));
+        const quantity = parseInt(quantityElement.textContent.replace(/\D/g, ''), 10);
+
+        const total = price * quantity;
+        totalPrice += total;
+
+        // Display the total price for each item
+        totalElement.textContent = `Total: $${total.toFixed(2)}`;
+      });
+
+      // Display the overall total price on the checkout page
+      document.getElementById('totalPrice').textContent = `Total Price: $${totalPrice}`;
+    }
+
+
+
+    var stripe = Stripe('pk_test_51OLmJ0SHaCuAgoxWt76uUtER0IoEuIg3MLQRwrmvmVBCptzFw5ijrGMeAqSr3WWjStXDUy7JrZOsVjgcUomoBfDf00ouLzAZzD');
+    var elements = stripe.elements();
+    var card = elements.create('card');
+    card.mount('#card-element');
+
+    // Handle real-time validation errors from the card Element.
+    card.addEventListener('change', function (event) {
+      var displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = '';
+      }
+    });
+
+
+
+    function processPayment() {
+      // Simulate payment processing using the test card details
+      stripe.confirmCardPayment('sk_test_51OLmJ0SHaCuAgoxWTgVJSElebf26tEZGLMJGRNwX2YvfRwmyfs4swIokNWgPrWV4JFq2AcPn8i3kGfg5vOWeDmf300YlZdZZBl', {
+        payment_method: {
+          card: elements.getElement('card'),
+          billing_details: {
+            name: 'Chinu',
+            number: "78458455",
+            adress: "puri, odisha",
+            email: "chhinu@gmail.com"
+          },
+        },
+      }).then(function (result) {
+        if (result.error) {
+          // Show error to your customer (e.g., insufficient funds)
+          alert(result.error.message);
+        } else {
+          // The payment was processed successfully
+          alert('Payment processed successfully! Thank you for your purchase!');
+          resetCart();
+        }
+      });
+    }
+
+
+    function resetCart() {
+      // Reset cart count and notification
+      cartCount = 0;
+      document.getElementById('cartNotification').textContent = cartCount;
+
+      // Clear cart items
+      document.getElementById('cartItems').innerHTML = '';
+
+      // Go back to the home page
+      document.getElementById('checkoutContainer').style.display = 'none';
+      document.getElementById('cartContainer').style.display = 'none';
+    }
+    function checkout() {
+      alert('Thank you for your purchase!');
+    }
+  </script>
+</body>
+
+</html>
